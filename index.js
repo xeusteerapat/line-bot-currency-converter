@@ -17,6 +17,7 @@ const app = express();
 app.use(cors());
 
 app.post('/webhook', line.middleware(config), (req, res) => {
+  console.log(req.body.events);
   Promise.all(req.body.events.map(handleEvent)).then(result =>
     res.json(result)
   );
@@ -38,13 +39,16 @@ function handleEvent(event) {
 
       const thaiCurrenciesBase = _.mapValues(currencies, n => n / 36.258593);
 
-      const clientMessage = event.message.text.split(' ')[1];
+      const clientCurrencyNumber = Number(event.message.text.split(' ')[0]);
+      const clientCurrencyMessage = event.message.text.split(' ')[1];
 
       Object.keys(thaiCurrenciesBase).forEach(currency => {
-        if (currency === clientMessage) {
+        if (currency === clientCurrencyMessage) {
           messages = {
             type: 'text',
-            text: `1 ${currency} = ${1 / thaiCurrenciesBase[currency]} THB`,
+            text: `${clientCurrencyNumber} ${currency} = ${
+              clientCurrencyNumber / thaiCurrenciesBase[currency]
+            } THB`,
           };
 
           return client.replyMessage(event.replyToken, messages);
